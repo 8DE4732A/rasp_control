@@ -3,25 +3,51 @@ import base64
 import json
 import os
 import subprocess
-import redis
+import sqlite3
 import urllib.request
 
-r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+subscription_url = 'http://localhost/V2RayN_1597068639.txt'
+config_path = 'F:/config.json'
+
+conn = sqlite3.connect('vmess.db')
+conn.execute('''CREATE TABLE IF NOT EXISTS "vmess" (
+	"id"	INTEGER NOT NULL UNIQUE,
+    "name"  TEXT,
+	"vmess"	TEXT,
+	"used"	INTEGER DEFAULT 0,
+	PRIMARY KEY("id" AUTOINCREMENT)
+) ''')
+conn.commit()
 
 
-def sub_decode(address):
-    with urllib.request.urlopen(address) as f:
+def update_subscription(address):
+    req = urllib.request.Request(address)
+    req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36")
+    with urllib.request.urlopen(req) as f:
         serverListLink = base64.b64decode(
             f.read()).splitlines()
         if serverListLink:
-            r.delete("serverlist")
+            conn.execute('''delete from vmess where 1 = 1;''')
+            conn.commit()
+            print("#######server list:")
             for i in range(len(serverListLink)):
                 serverNode = json.loads(base64.b64decode(
                     bytes.decode(serverListLink[i]).replace('vmess://', '')))
                 print('[' + str(i) + ']' + serverNode['ps'])
                 serverListLink[i] = serverNode
-                r.rpush(serverNode)
-            return serverListLink
+                conn.execute(
+                    '''insert into vmess (name, vmess) values (?, ?)''', (serverNode['ps'], json.dumps(serverNode)))
+            conn.commit()
+            print("#######")
+
+
+def print_stored_server():
+    cur = conn.cursor()
+    print("#######server list:")
+    for row in cur.execute("select * from vmess order by id"):
+        print('[' + str(row[0]) + ']' , row[1])
+    print("#######")
+    cur.close()
 
 
 def export(vmess):
@@ -54,12 +80,12 @@ def export(vmess):
                     "vnext": [
                         {
                             "address": "&address",
-                            "port": 1080,
+                            "port": &port,
                             "users": [
                                 {
-                                    "id": "uuid",
-                                    "alterId": 0,
-                                    "email": "@",
+                                    "id": "&uuid",
+                                    "alterId": &alterId,
+                                    "email": "t@t.tt",
                                     "security": "auto"
                                 }
                             ]
@@ -76,7 +102,7 @@ def export(vmess):
                     "kcpSettings": null,
                     "wsSettings": {
                         "connectionReuse": true,
-                        "path": "path",
+                        "path": "&path",
                         "headers": null
                     },
                     "httpSettings": null,
@@ -114,24 +140,46 @@ def export(vmess):
         "reverse": {},
         "transport": {}
     }'''
-    v2rayConf.replace("&address", "")
-    v2rayConf.replace("&address", "")
-    v2rayConf.replace("&address", "")
-    v2rayConf.replace("&address", "")
-    v2rayConf.replace("&address", "")
-    v2rayConf.replace("&address", "")
-    v2rayConf.replace("&address", "")
+    v2rayConf = v2rayConf.replace("&address", vmess["add"])
+    v2rayConf = v2rayConf.replace("&port", str(vmess["port"]))
+    v2rayConf = v2rayConf.replace("&alterId", str(vmess["aid"]))
+    v2rayConf = v2rayConf.replace("&uuid", vmess["id"])
+    v2rayConf = v2rayConf.replace("&path", vmess["path"])
 
-    json.dump(v2rayConf, open('/etc/v2ray/config.json', 'w'), indent=2)
+    with open(config_path, 'w') as f:
+        f.write(v2rayConf)
 
 
 def restart():
     subprocess.call('systemctl restart v2ray.service', shell=True)
 
 
-def printStoredServer():
-    r.get("serverlist")
-
-
 if __name__ == "__main__":
-    pass
+    while True:
+        print("")
+        print(">>>>>>>>>>>>>>>>>>>>>")
+        print("1:subscription update")
+        print("2:show all subscription")
+        print("3:select server and reboot server")
+        print("4:reboot server")
+        print("5:exit")
+        index = input("choose:")
+        if index == "1":
+            update_subscription(subscription_url)
+        elif index == "2":
+            print_stored_server()
+        elif index == "3":
+            print_stored_server()
+            index = input("choose:")
+            curr = conn.cursor()
+            curr.execute("select id, name, vmess from vmess where id = ?", (index,))
+            row = curr.fetchone()
+            vmess = json.loads(row[2])
+            print("\n")
+            print('[' + str(row[0]) + ']' , row[1])
+            export(vmess)
+            print('exported:', config_path)
+        elif index == "4":
+            pass
+        elif index == "5":
+            exit(0)
