@@ -1,4 +1,3 @@
-import web
 import base64
 import json
 import os
