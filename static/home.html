@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>V2PANEL</title>
+    <style>
+      body {
+          background-color: cornsilk; 
+      }
+      div {
+        position: relative;
+        margin-top: 30px;
+      }
+      form {
+        position: relative;
+        align-self: center;
+        width  : 60%;
+        min-width: 600px;
+        margin : 0 auto;
+      }
+      h3 {
+        color:darkslategray;
+      }
+      </style>
+  </head>
+  <body>
+    <div id="subscription">
+      <form action="/subscription" method="POST">
+        <h3>订阅</h3>
+        <fieldset>
+          <legend>选择服务：</legend>
+          <ul>
+            <li>
+              <input type="radio" checked id="carrots" name="sub" value="carrots">
+              <label for="carrots">Carrots</label>
+            </li>
+            <li>
+              <input type="radio" id="peas" name="sub" value="peas">
+              <label for="peas">Peas</label>
+            </li>
+          </ul>
+        </fieldset>
+        <button type="submit" name="action" value="refresh">
+          <strong>更新服务器列表</strong>
+        </button>
+        <button type="submit" name="action" value="submit">
+          <strong>设置选中的服务</strong>
+        </button>
+      </form>
+    </div>
+    <div id="controller">
+      <form action="/control" method="POST">
+        <h3>控制面板</h3>
+        <button type="submit" name="action" value="restart">
+          <strong>重启服务</strong>
+        </button>
+      </form>
+    </div>
+    <div id="config">
+      <form>
+        <h3>配置文件</h3>
+        <label for="config">config.json</label>
+        <textarea name="config">
+          
+        </textarea>
+      </form>
+    </div>
+    <script>
+    
+    </script>
+  </body>
+</html>

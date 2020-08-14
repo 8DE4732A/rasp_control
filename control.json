@@ -1,0 +1,6 @@
+[
+  {
+    "name": "重启服务",
+    "script": "systemctl restart v2ray"
+  }
+]

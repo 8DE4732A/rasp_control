@@ -14,7 +14,7 @@ conn.execute('''CREATE TABLE IF NOT EXISTS "vmess" (
     "name"  TEXT,
 	"vmess"	TEXT,
 	"used"	INTEGER DEFAULT 0,
-	PRIMARY KEY("id" AUTOINCREMENT)
+	PRIMARY KEY("id")
 ) ''')
 conn.commit()
 
@@ -26,7 +26,7 @@ def update_subscription(address):
         serverListLink = base64.b64decode(
             f.read()).splitlines()
         if serverListLink:
-            conn.execute('''delete from vmess where 1 = 1;''')
+            conn.execute('''delete from vmess where 1 = 1''')
             conn.commit()
             print("#######server list:")
             for i in range(len(serverListLink)):
@@ -35,7 +35,7 @@ def update_subscription(address):
                 print('[' + str(i) + ']' + serverNode['ps'])
                 serverListLink[i] = serverNode
                 conn.execute(
-                    '''insert into vmess (name, vmess) values (?, ?)''', (serverNode['ps'], json.dumps(serverNode)))
+                    '''insert into vmess (id, name, vmess) values (?, ?)''', i, (serverNode['ps'], json.dumps(serverNode)))
             conn.commit()
             print("#######")
 
