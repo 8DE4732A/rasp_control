@@ -127,6 +127,7 @@
       };
       function refreshTable() {
         $.getJSON("/v1/subscription", function(data){
+          $("#subscriptionList > tr").remove();
           refreshSubscription(data);
         });
       };
@@ -136,6 +137,8 @@
             function(data){
               console.log(data);
               refreshTable();
+              $("#controlResult").text(data);
+              $('.modal').modal();
             },
             "json")
           });
