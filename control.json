@@ -1,6 +1,18 @@
 [
   {
-    "name": "重启服务",
+    "name": "重启v2ray",
     "script": "systemctl restart v2ray"
+  },
+  {
+    "name": "重启rrys",
+    "script": "systemctl restart rrys"
+  },
+  {
+    "name": "关闭rrys",
+    "script": "systemctl stop rrys"
+  },
+  {
+    "name": "执行iptables",
+    "script": "sh /home/pi/iptables.sh"
   }
 ]

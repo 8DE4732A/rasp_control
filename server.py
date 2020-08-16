@@ -3,10 +3,12 @@ import json
 import urllib
 import base64
 import logging
+import subprocess
 import subscription
 
-subscription_url = 'http://localhost/V2RayN_1597068639.txt'
-config_path = 'F:/config.json'
+subscription_url = 'file:///var/www/v2panel/V2RayN_1597068639.txt'
+config_path = '/var/www/v2panel/config.json'
+control_path = '/var/www/v2panel/control.json'
 
 FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -18,14 +20,30 @@ urls = (
     '/v1/config', 'cfg',
     '/v1/subscription', 'sub'
 )
-web.config.debug = False
+web.config.debug = True
 app = web.application(urls, globals())
 db = web.database(dbn="sqlite", db="vmess.db")
 
 class ctr:
-    pass
+    def GET(self):
+        with open(control_path, 'r') as f:
+            return f.read()
+    def POST(self):
+        data = json.loads(web.data())
+        name = data["name"]
+        with open(control_path, 'r') as f:
+            control = json.loads(f.read());
+            for ctrl in control:
+                if ctrl["name"] == name:
+                    print(ctrl["script"])
+                    logger.info("execute %s", ctrl["script"],  extra=d)
+                    return subprocess.call(ctrl["script"], shell=True)
+
 class cfg:
-    pass
+    def GET(self):
+        with open(config_path, 'r') as f:
+            return  f.read()
+
 
 class sub:
     def GET(self):
@@ -39,6 +57,7 @@ class sub:
         return json.dumps(data)
     def POST(self):
         datastr = web.data()
+        print(datastr)
         data = json.loads(datastr)
         if(data["action"] == "update"):
             req = urllib.request.Request(subscription_url)
@@ -55,12 +74,17 @@ class sub:
                         print('[' + str(i) + ']' + serverNode['ps'])
                         serverListLink[i] = serverNode
                         db.insert('vmess', id=i,name=serverNode['ps'],vmess=json.dumps(serverNode))
+            return json.dumps({"code": 0})
         elif(data["action"] == "set"):
             index = data["index"]
             vars = dict(index=index)
             results = db.select("vmess", vars=vars, what="vmess", where="id = $index")
-            subscription.export(results[0])
+            print(results)
+            subscription.export(json.loads(results[0]["vmess"]), config_path)
             subscription.restart()
+            db.update('vmess', where="1=1", used=0)
+            db.update('vmess', vars=vars, where="id = $index", used=1)
+            return json.dumps({"code": 0})
 
 if __name__ == "__main__":
     app.run()

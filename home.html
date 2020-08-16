@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
   </head>
   <body>
+    <div class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Result</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p id="controlResult"></p>
+          </div>
+          <!-- <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div> -->
+        </div>
+      </div>
+    </div>
     <div class="container">
       <div class="row">
         <div class="col"><h3>订阅管理</h3></div>
@@ -41,7 +60,8 @@
         <div class="col"><h3>控制</h3></div>
       </div>
       <div id="controlList" class="row row-cols-2">
-        <div class="col"><button type="button" class="btn btn-info">Info</button></div>
+        <!-- <div class="col"><button type="button" class="btn btn-info">Info</button></div>
+        <div class="col "><p>Info</p></div> -->
       </div>
       <div class="row">
       </br>
@@ -54,7 +74,7 @@
           <form>
             <div class="form-group">
               <label for="config">Config.json</label>
-              <textarea class="form-control" id="config" rows="8"></textarea>
+              <textarea class="form-control" id="config" rows="16"></textarea>
               <button type="button" class="btn btn-info" id="refreshConfig">刷新</button>
             </div>
           </form>
@@ -66,21 +86,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     <script>
       let currentSelected = 0;
-      $("tbody > tr").hover(
-        function () {
-          $(this).addClass("table-primary");
-        },
-        function () {
-          $(this).removeClass("table-primary");
-        }
-      );
-      $("tbody > tr").click( 
-        function () { 
-          $(this).addClass("table-info"); 
-          currentSelected = parseInt($(this).children().first().text());
-        }
-      );
-
+      function setTable() {
+        $("tbody > tr").hover(
+          function () {
+            $(this).addClass("table-primary");
+          },
+          function () {
+            $(this).removeClass("table-primary");
+          }
+        );
+        $("tbody > tr").click(
+          function () {
+            $("tbody").children(".table-info").removeClass("table-info");
+            $(this).addClass("table-info");
+            currentSelected = parseInt($(this).children().first().text());
+          }
+        );
+      };
       function refreshSubscription(data) {
         $.each(data, function(i,item){
           ths = `
@@ -96,39 +118,59 @@
             $("#subscriptionList").append("<tr>" + ths + "</tr>");
           }
         });
+        setTable();
       };
       function refreshConfig() {
-
+        $.get("/v1/config", function(data){
+          $("#config").text(data);
+        })
       };
-      $.getJSON("/subscription", function(data){
-        refreshSubscription(data);
-      });
+      function refreshTable() {
+        $.getJSON("/v1/subscription", function(data){
+          refreshSubscription(data);
+        });
+      };
+      refreshTable();
       $("#refresh").on("click", function(){
-          $.post("/subscription", {"action": "update"},
+          $.post("/v1/subscription", JSON.stringify({"action": "update"}),
             function(data){
-              refreshSubscription();
-            }, 
+              console.log(data);
+              refreshTable();
+            },
             "json")
           });
       $("#set").on("click", function(){
-        $.post("/subscription", {"action": "set", "index": currentSelected},
+        $.post("/v1/subscription", JSON.stringify({"action": "set", "index": currentSelected}),
             function(data){
-              refreshSubscription();
-            }, 
+              console.log(data);
+              refreshTable();
+              refreshConfig();
+            },
             "json")
       });
       //初始化控制按钮
-      $.getJSON("/control", function(data){
+      $.getJSON("/v1/control", function(data){
+        console.log(data);
         $.each(data, function(i,item){
-          let name = item["name"];
-          $("#controlList").append(`<div class="col"><button type="button" class="btn btn-info">${name}</button></div>`);
+          console.log(item);
+          $("#controlList").append(`<div class="col"><button type="button" class="btn btn-info">${item["name"]}</button></div><div class="col"><p>${item["script"]}</p></div>`);
+        });
+        $("#controlList > div > button").on("click", function(){
+          let name = $(this).text();
+          console.log("click " + name);
+          $.post("/v1/control", JSON.stringify({"name": name}),
+              function(data){;
+                console.log(data);
+                $("#controlResult").text(data);
+                $('.modal').modal();
+              },
+              "json")
         });
       });
       //初始化配置文件
       $("#refreshConfig").on("click", function(){
         refreshConfig();
       });
-      
       refreshConfig();
     </script>
   </body>

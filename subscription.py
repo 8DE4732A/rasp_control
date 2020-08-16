@@ -62,7 +62,7 @@ def list_stored_server():
 
 
 
-def export(vmess):
+def export(vmess, path=config_path):
     v2rayConf = '''{
         "log": {},
         "dns": {},
@@ -158,7 +158,7 @@ def export(vmess):
     v2rayConf = v2rayConf.replace("&uuid", vmess["id"])
     v2rayConf = v2rayConf.replace("&path", vmess["path"])
 
-    with open(config_path, 'w') as f:
+    with open(path, 'w+') as f:
         f.write(v2rayConf)
 
 
