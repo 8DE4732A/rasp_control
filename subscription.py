@@ -14,6 +14,8 @@ conn.execute('''CREATE TABLE IF NOT EXISTS "vmess" (
     "name"  TEXT,
 	"vmess"	TEXT,
 	"used"	INTEGER DEFAULT 0,
+    "ping"  INTEGER DEFAULT 0,
+    "bandwidth" INTEGER DEFAULT 0,
 	PRIMARY KEY("id")
 ) ''')
 conn.commit()
@@ -35,7 +37,7 @@ def update_subscription(address):
                 print('[' + str(i) + ']' + serverNode['ps'])
                 serverListLink[i] = serverNode
                 conn.execute(
-                    '''insert into vmess (id, name, vmess) values (?, ?)''', i, (serverNode['ps'], json.dumps(serverNode)))
+                    '''insert into vmess (id, name, vmess) values (?, ?, ?)''', ( i, serverNode['ps'], json.dumps(serverNode)))
             conn.commit()
             print("#######")
 
@@ -47,6 +49,17 @@ def print_stored_server():
         print('[' + str(row[0]) + ']' , row[1])
     print("#######")
     cur.close()
+
+def list_stored_server():
+    cur = conn.cursor()
+    cur.execute("select * from vmess order by id")
+    data = []
+    for v in cur.fetchall():
+        vmess = {"index": v[0], "name": v[1], "used": v[3], "ping": v[4], "bandwidth": v[5]}
+        data.append(vmess)
+    cur.close()
+    return data
+
 
 
 def export(vmess):
@@ -152,6 +165,18 @@ def export(vmess):
 def restart():
     subprocess.call('systemctl restart v2ray.service', shell=True)
 
+def set_subscription(index):
+    curr = conn.cursor()
+    curr.execute("select id, name, vmess from vmess where id = ?", (index,))
+    row = curr.fetchone()
+    if row:
+        vmess = json.loads(row[2])
+        print("\n")
+        print('[' + str(row[0]) + ']' , row[1])
+        export(vmess)
+        print('exported:', config_path)
+        restart()
+
 
 if __name__ == "__main__":
     while True:
@@ -170,14 +195,7 @@ if __name__ == "__main__":
         elif index == "3":
             print_stored_server()
             index = input("choose:")
-            curr = conn.cursor()
-            curr.execute("select id, name, vmess from vmess where id = ?", (index,))
-            row = curr.fetchone()
-            vmess = json.loads(row[2])
-            print("\n")
-            print('[' + str(row[0]) + ']' , row[1])
-            export(vmess)
-            print('exported:', config_path)
+            set_subscription(index)
         elif index == "4":
             pass
         elif index == "5":

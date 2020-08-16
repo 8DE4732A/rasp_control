@@ -13,13 +13,13 @@
       </div>
       <div class="row">
         <div class="col">
-          <table class="table">
+          <table class="table table-bordered">
             <thead>
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">名称</th>
                 <th scope="col">ping</th>
-                <th scope="col">speed</th>
+                <th scope="col">bandwidth</th>
               </tr>
             </thead>
             <tbody id="subscriptionList">
@@ -65,22 +65,57 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     <script>
-      //初始话订阅列表
-      $.getJSON("/subscription", function(data){
+      let currentSelected = 0;
+      $("tbody > tr").hover(
+        function () {
+          $(this).addClass("table-primary");
+        },
+        function () {
+          $(this).removeClass("table-primary");
+        }
+      );
+      $("tbody > tr").click( 
+        function () { 
+          $(this).addClass("table-info"); 
+          currentSelected = parseInt($(this).children().first().text());
+        }
+      );
+
+      function refreshSubscription(data) {
         $.each(data, function(i,item){
-          var ths = "<th scope=\"col\">" + i + "</th>";
-          for(var i = 0; i < item.length; i++) {
-            ths += "<th scope=\"col\">" + item[i] + "</th>";
+          ths = `
+          <th scope="col">${item["index"]}</th>
+          <th scope="col">${item["name"]}</th>
+          <th scope="col">${item["ping"]}</th>
+          <th scope="col">${item["bandwidth"]}</th>
+          `;
+          if(item["used"] == 1) {
+            currentSelected = i;
+            $("#subscriptionList").append(`<tr class="table-active">` + ths + "</tr>");
+          } else {
+            $("#subscriptionList").append("<tr>" + ths + "</tr>");
           }
-          $("#subscriptionList").append("<tr>" + ths + "</tr>");
         });
+      };
+      function refreshConfig() {
+
+      };
+      $.getJSON("/subscription", function(data){
+        refreshSubscription(data);
       });
-      //初始化订阅按钮
       $("#refresh").on("click", function(){
-        $.post();
-        });
+          $.post("/subscription", {"action": "update"},
+            function(data){
+              refreshSubscription();
+            }, 
+            "json")
+          });
       $("#set").on("click", function(){
-        $.post();
+        $.post("/subscription", {"action": "set", "index": currentSelected},
+            function(data){
+              refreshSubscription();
+            }, 
+            "json")
       });
       //初始化控制按钮
       $.getJSON("/control", function(data){
@@ -93,9 +128,7 @@
       $("#refreshConfig").on("click", function(){
         refreshConfig();
       });
-      function refreshConfig() {
-
-      };
+      
       refreshConfig();
     </script>
   </body>
