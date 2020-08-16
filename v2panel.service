@@ -1,0 +1,14 @@
+[Unit]
+Description=v2panel service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=root
+WorkingDirectory=/var/www/v2panel/
+ExecStart=python3 /var/www/v2panel/server.py
+
+[Install]
+WantedBy=multi-user.target
