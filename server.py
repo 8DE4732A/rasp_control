@@ -32,7 +32,7 @@ class ctr:
         data = json.loads(web.data())
         name = data["name"]
         with open(control_path, 'r') as f:
-            control = json.loads(f.read());
+            control = json.loads(f.read())
             for ctrl in control:
                 if ctrl["name"] == name:
                     print(ctrl["script"])
