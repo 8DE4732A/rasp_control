@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>V2PANEL</title>
+    <link rel="stylesheet" href="/bootstrap.min.css">
+  </head>
+  <body>
+    <div class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Result</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p id="controlResult"></p>
+          </div>
+          <!-- <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div> -->
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col"><h3>配置文件</h3></div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <form>
+            <div class="form-group">
+              <label for="config">Config.json</label>
+              <textarea class="form-control" id="config" rows="16"></textarea>
+              <button type="button" class="btn btn-info" id="refreshConfig">刷新</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="/jquery.min.js"></script>
+    <script src="/popper.min.js"></script>
+    <script src="/bootstrap.min.js"></script>
+    <script>
+      function refreshConfig() {
+        $.get("/v1/config", function(data){
+          $("#config").text(data);
+        })
+      };
+      //初始化配置文件
+      $("#refreshConfig").on("click", function(){
+        refreshConfig();
+      });
+      refreshConfig();
+    </script>
+  </body>
+</html>

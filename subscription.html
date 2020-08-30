@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>V2PANEL</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="/bootstrap.min.css">
   </head>
   <body>
     <div class="modal" tabindex="-1" role="dialog">
@@ -19,10 +19,6 @@
           <div class="modal-body">
             <p id="controlResult"></p>
           </div>
-          <!-- <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-          </div> -->
         </div>
       </div>
     </div>
@@ -52,38 +48,10 @@
           <button type="button" class="btn btn-success" id="set">设置</button>
         </div>
       </div>
-
-      <div class="row">
-      </br>
-      </div>
-      <div class="row">
-        <div class="col"><h3>控制</h3></div>
-      </div>
-      <div id="controlList" class="row row-cols-2">
-        <!-- <div class="col"><button type="button" class="btn btn-info">Info</button></div>
-        <div class="col "><p>Info</p></div> -->
-      </div>
-      <div class="row">
-      </br>
-      </div>
-      <div class="row">
-        <div class="col"><h3>配置文件</h3></div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <form>
-            <div class="form-group">
-              <label for="config">Config.json</label>
-              <textarea class="form-control" id="config" rows="16"></textarea>
-              <button type="button" class="btn btn-info" id="refreshConfig">刷新</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script src="/jquery.min.js"></script>
+    <script src="/popper.min.js"></script>
+    <script src="/bootstrap.min.js"></script>
     <script>
       let currentSelected = 0;
       function setTable() {
@@ -120,11 +88,6 @@
         });
         setTable();
       };
-      function refreshConfig() {
-        $.get("/v1/config", function(data){
-          $("#config").text(data);
-        })
-      };
       function refreshTable() {
         $.getJSON("/v1/subscription", function(data){
           $("#subscriptionList > tr").remove();
@@ -147,34 +110,9 @@
             function(data){
               console.log(data);
               refreshTable();
-              refreshConfig();
             },
             "json")
       });
-      //初始化控制按钮
-      $.getJSON("/v1/control", function(data){
-        console.log(data);
-        $.each(data, function(i,item){
-          console.log(item);
-          $("#controlList").append(`<div class="col"><button type="button" class="btn btn-info">${item["name"]}</button></div><div class="col"><p>${item["script"]}</p></div>`);
-        });
-        $("#controlList > div > button").on("click", function(){
-          let name = $(this).text();
-          console.log("click " + name);
-          $.post("/v1/control", JSON.stringify({"name": name}),
-              function(data){;
-                console.log(data);
-                $("#controlResult").text(data);
-                $('.modal').modal();
-              },
-              "json")
-        });
-      });
-      //初始化配置文件
-      $("#refreshConfig").on("click", function(){
-        refreshConfig();
-      });
-      refreshConfig();
     </script>
   </body>
 </html>
