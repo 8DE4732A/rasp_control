@@ -1,8 +1,7 @@
 import base64
 import json
-import os
-import subprocess
 import sqlite3
+import subprocess
 import urllib.request
 
 subscription_url = 'http://localhost/V2RayN_1597068639.txt'
@@ -23,7 +22,8 @@ conn.commit()
 
 def update_subscription(address):
     req = urllib.request.Request(address)
-    req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36")
+    req.add_header("User-Agent",
+                   "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36")
     with urllib.request.urlopen(req) as f:
         serverListLink = base64.b64decode(
             f.read()).splitlines()
@@ -37,7 +37,8 @@ def update_subscription(address):
                 print('[' + str(i) + ']' + serverNode['ps'])
                 serverListLink[i] = serverNode
                 conn.execute(
-                    '''insert into vmess (id, name, vmess) values (?, ?, ?)''', ( i, serverNode['ps'], json.dumps(serverNode)))
+                    '''insert into vmess (id, name, vmess) values (?, ?, ?)''',
+                    (i, serverNode['ps'], json.dumps(serverNode)))
             conn.commit()
             print("#######")
 
@@ -46,9 +47,10 @@ def print_stored_server():
     cur = conn.cursor()
     print("#######server list:")
     for row in cur.execute("select * from vmess order by id"):
-        print('[' + str(row[0]) + ']' , row[1])
+        print('[' + str(row[0]) + ']', row[1])
     print("#######")
     cur.close()
+
 
 def list_stored_server():
     cur = conn.cursor()
@@ -59,7 +61,6 @@ def list_stored_server():
         data.append(vmess)
     cur.close()
     return data
-
 
 
 def export(vmess, path=config_path):
@@ -165,6 +166,7 @@ def export(vmess, path=config_path):
 def restart():
     subprocess.call('systemctl restart v2ray.service', shell=True)
 
+
 def set_subscription(index):
     curr = conn.cursor()
     curr.execute("select id, name, vmess from vmess where id = ?", (index,))
@@ -172,7 +174,7 @@ def set_subscription(index):
     if row:
         vmess = json.loads(row[2])
         print("\n")
-        print('[' + str(row[0]) + ']' , row[1])
+        print('[' + str(row[0]) + ']', row[1])
         export(vmess)
         print('exported:', config_path)
         restart()

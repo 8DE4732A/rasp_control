@@ -1,0 +1,288 @@
+<div class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Result</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="controlResult"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h3>状态</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <canvas id="cpu" width="400" height="400"></canvas>
+        </div>
+        <div class="col">
+            <canvas id="cpuAvg" width="400" height="400"></canvas>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <canvas id="mem" width="400" height="400"></canvas>
+        </div>
+        <div class="col">
+            <canvas id="temp" width="400" height="400"></canvas>
+        </div>
+    </div>
+</div>
+<script src="/static/jquery.min.js"></script>
+<script src="/static/popper.min.js"></script>
+<script src="/static/bootstrap.min.js"></script>
+<script src="/static/socket.io.min.js"></script>
+<script src="/static/Chart.bundle.js"></script>
+<script>
+    var mem = new Chart($("#mem"), {
+        type: 'bar',
+        data: {
+            labels: ["virtual", "swap"],
+            datasets: [{
+                label: 'memory usage',
+                data: [0, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 99, 132, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(255,99,132,1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: '%'
+                    },
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+    window.chartColors = {
+        red: 'rgb(255, 99, 132)',
+        orange: 'rgb(255, 159, 64)',
+        yellow: 'rgb(255, 205, 86)',
+        green: 'rgb(75, 192, 192)',
+        blue: 'rgb(54, 162, 235)',
+        purple: 'rgb(153, 102, 255)',
+        grey: 'rgb(201, 203, 207)'
+    };
+
+    var cpu = new Chart($("#cpu"), {
+        type: 'line',
+        data: {
+            labels: new Array(40),
+            datasets: [{
+                label: '#0',
+                backgroundColor: window.chartColors.red,
+                borderColor: window.chartColors.red,
+                data: new Array(40),
+                fill: false,
+                steppedLine: true
+            }, {
+                label: '#1',
+                fill: false,
+                steppedLine: true,
+                backgroundColor: window.chartColors.blue,
+                borderColor: window.chartColors.blue,
+                data: new Array(40)
+            }, {
+                label: '#2',
+                fill: false,
+                steppedLine: true,
+                backgroundColor: window.chartColors.green,
+                borderColor: window.chartColors.green,
+                data: new Array(40)
+            }, {
+                label: '#3',
+                fill: false,
+                steppedLine: true,
+                backgroundColor: window.chartColors.yellow,
+                borderColor: window.chartColors.yellow,
+                data: new Array(40)
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'cpu usage'
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time'
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: '%'
+                    }
+                }]
+            }
+        }
+    });
+    var cpuAvg = new Chart($("#cpuAvg"), {
+        type: 'line',
+        data: {
+            labels: new Array(40),
+            datasets: [{
+                label: 'average',
+                fill: false,
+                // steppedLine: true,
+                backgroundColor: window.chartColors.grey,
+                borderColor: window.chartColors.grey,
+                data: new Array(40)
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'cpu average usage'
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time'
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: '%'
+                    }
+                }]
+            }
+        }
+    });
+    var temp = new Chart($("#temp"), {
+        type: 'line',
+        data: {
+            labels: new Array(40),
+            datasets: [{
+                label: 'temp',
+                fill: false,
+                // steppedLine: true,
+                backgroundColor: window.chartColors.red,
+                borderColor: window.chartColors.red,
+                data: new Array(40)
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'cpu temperature'
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time'
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: '℃'
+                    }
+                }]
+            }
+        }
+    });
+    function guid() {
+        function S4() {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        }
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+    if (!socket) {
+        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + "/ws/status");
+        var count = 0;
+        var uuid = guid();
+        socket.emit("status", uuid);
+        socket.on('message', function (res) {
+            console.log("ws message : " + res)
+            var status = JSON.parse(res);
+            if (status['uuid'] == uuid) {
+                mem.data.datasets[0]["data"] = [status["mem"]["percent"], status["swap"]["percent"]];
+                mem.update();
+                var cpuStatus = status["cpu"];
+                for (var i = 0; i < cpuStatus.length; i++) {
+                    cpu.data.datasets[i]["data"].push(cpuStatus[i]);
+                    cpu.data.datasets[i]["data"].shift();
+                }
+                var date = new Date();
+                cpu.data.labels.push("" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+                cpu.data.labels.shift();
+                cpu.update();
+                cpuAvg.data.datasets[0]["data"].push(status["cpuAve"]);
+                cpuAvg.data.datasets[0]["data"].shift();
+                cpuAvg.data.labels.push("" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+                cpuAvg.data.labels.shift();
+                cpuAvg.update();
+                temp.data.datasets[0]["data"].push(status["temp"]["cpu_thermal"][0][1]);
+                temp.data.datasets[0]["data"].shift();
+                temp.data.labels.push("" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
+                temp.data.labels.shift();
+                temp.update();
+                setTimeout(function () { socket.emit("status", uuid) }, 1000);
+            }
+        });
+    } else {
+        console.log("socket already exist");
+    }
+    $(document).ready(function () {
+
+    });
+</script>

@@ -1,0 +1,110 @@
+
+<div class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Result</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="controlResult"></p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col"><h3>订阅管理</h3></div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">名称</th>
+            <th scope="col">ping</th>
+            <th scope="col">bandwidth</th>
+          </tr>
+        </thead>
+        <tbody id="subscriptionList">
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <button type="button" class="btn btn-primary" id="refresh">更新</button>
+      <button type="button" class="btn btn-success" id="set">设置</button>
+    </div>
+  </div>
+</div>
+<script src="/static/jquery.min.js"></script>
+<script src="/static/popper.min.js"></script>
+<script src="/static/bootstrap.min.js"></script>
+<script>
+  var currentSelected = 0;
+  function setTable() {
+    $("tbody > tr").hover(
+      function () {
+        $(this).addClass("table-primary");
+      },
+      function () {
+        $(this).removeClass("table-primary");
+      }
+    );
+    $("tbody > tr").click(
+      function () {
+        $("tbody").children(".table-info").removeClass("table-info");
+        $(this).addClass("table-info");
+        currentSelected = parseInt($(this).children().first().text());
+      }
+    );
+  };
+  function refreshSubscription(data) {
+    $.each(data, function(i,item){
+      ths = `
+      <th scope="col">${item["index"]}</th>
+      <th scope="col">${item["name"]}</th>
+      <th scope="col">${item["ping"]}</th>
+      <th scope="col">${item["bandwidth"]}</th>
+      `;
+      if(item["used"] == 1) {
+        currentSelected = i;
+        $("#subscriptionList").append(`<tr class="table-active">` + ths + "</tr>");
+      } else {
+        $("#subscriptionList").append("<tr>" + ths + "</tr>");
+      }
+    });
+    setTable();
+  };
+  function refreshTable() {
+    $.getJSON("/v1/subscription", function(data){
+      $("#subscriptionList > tr").remove();
+      refreshSubscription(data);
+    });
+  };
+  $(document).ready(function() {
+    refreshTable();
+    $("#refresh").on("click", function(){
+        $.post("/v1/subscription", {"action": "update"},
+          function(data){
+            console.log(data);
+            refreshTable();
+            $("#controlResult").text(data);
+            $('.modal').modal();
+          },
+          "json")
+        });
+    $("#set").on("click", function(){
+      $.post("/v1/subscription", {"action": "set", "index": currentSelected},
+          function(data){
+            console.log(data);
+            refreshTable();
+          },
+          "json")
+    });
+  })
+</script>

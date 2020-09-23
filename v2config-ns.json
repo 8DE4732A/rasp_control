@@ -1,0 +1,181 @@
+{
+	"log": {},
+	"inbounds": [
+		{
+			"tag": "transparent",
+			"port": 12345,
+			"protocol": "dokodemo-door",
+			"settings": {
+				"network": "tcp,udp",
+				"followRedirect": true
+			},
+			"sniffing": {
+				"enabled": true,
+				"destOverride": [
+					"http",
+					"tls"
+				]
+			},
+			"streamSettings": {
+				"sockopt": {
+					"tproxy": "tproxy"
+				}
+			}
+		}
+	],
+	"outbounds": [
+		{
+              "tag": "proxy",
+              "protocol": "vmess",
+              "settings": {
+                  "vnext": [
+                      {
+                          "address": "&address",
+                          "port": &port,
+                          "users": [
+                              {
+                                  "id": "&uuid",
+                                  "alterId": &alterId,
+                                  "email": "t@t.tt",
+                                  "security": "auto"
+                              }
+                          ]
+                      }
+                  ],
+                  "servers": null,
+                  "response": null
+              },
+              "streamSettings": {
+                  "network": "ws",
+                  "security": null,
+                  "tlsSettings": null,
+                  "tcpSettings": null,
+                  "kcpSettings": null,
+                  "wsSettings": {
+                      "connectionReuse": true,
+                      "path": "&path",
+                      "headers": null
+                  },
+                  "httpSettings": null,
+                  "quicSettings": null
+              },
+              "mux": {
+                  "enabled": true,
+                  "concurrency": 8
+              }
+          },
+		{
+			"tag": "direct",
+			"protocol": "freedom",
+			"settings": {
+				"domainStrategy": "UseIP"
+			},
+			"streamSettings": {
+				"sockopt": {
+					"mark": 255
+				}
+			}
+		},
+		{
+			"tag": "block",
+			"protocol": "blackhole",
+			"settings": {
+				"response": {
+					"type": "http"
+				}
+			}
+		},
+		{
+			"tag": "dns-out",
+			"protocol": "dns",
+			"streamSettings": {
+				"sockopt": {
+					"mark": 255
+				}
+			}
+		}
+	],
+	"dns": {
+		"hosts": {
+			"gw.wlan": "192.168.99.1",
+			"conntest.nintendowifi.net": "192.168.99.1",
+			"ctest.cdn.nintendo.net": "192.168.99.1",
+			"90dns.test": "192.168.99.1",
+			"domain:nintendo.com": "127.0.0.1",
+			"domain:nintendo.net": "127.0.0.1",
+			"domain:nintendo.jp": "127.0.0.1",
+			"domain:nintendo.co.jp": "127.0.0.1",
+			"domain:nintendo.co.uk": "127.0.0.1",
+			"domain:nintendo-europe.com": "127.0.0.1",
+			"domain:nintendowifi.net": "127.0.0.1",
+			"domain:nintendo.es": "127.0.0.1",
+			"domain:nintendo.co.kr": "127.0.0.1",
+			"domain:nintendo.tw": "127.0.0.1",
+			"domain:nintendo.com.hk": "127.0.0.1",
+			"domain:nintendo.com.au": "127.0.0.1",
+			"domain:nintendo.co.nz": "127.0.0.1",
+			"domain:nintendo.at": "127.0.0.1",
+			"domain:nintendo.be": "127.0.0.1",
+			"domain:nintendods.cz": "127.0.0.1",
+			"domain:nintendo.dk": "127.0.0.1",
+			"domain:nintendo.de": "127.0.0.1",
+			"domain:nintendo.fi": "127.0.0.1",
+			"domain:nintendo.fr": "127.0.0.1",
+			"domain:nintendo.gr": "127.0.0.1",
+			"domain:nintendo.hu": "127.0.0.1",
+			"domain:nintendo.it": "127.0.0.1",
+			"domain:nintendo.nl": "127.0.0.1",
+			"domain:nintendo.no": "127.0.0.1",
+			"domain:nintendo.pt": "127.0.0.1",
+			"domain:nintendo.ru": "127.0.0.1",
+			"domain:nintendo.co.za": "127.0.0.1",
+			"domain:nintendo.se": "127.0.0.1",
+			"domain:nintendo.ch": "127.0.0.1",
+			"domain:nintendoswitch.com": "127.0.0.1",
+			"domain:nintendoswitch.com.cn": "127.0.0.1",
+			"domain:nintendoswitch.cn": "127.0.0.1"
+		},
+		"servers": [
+			"8.8.8.8",
+			"1.1.1.1"
+		]
+	},
+	"routing": {
+		"domainStrategy": "IPOnDemand",
+		"rules": [
+			{
+				"type": "field",
+				"inboundTag": [
+					"transparent"
+				],
+				"port": 53,
+				"network": "udp",
+				"outboundTag": "dns-out"
+			},
+			{
+				"type": "field",
+				"inboundTag": [
+					"transparent"
+				],
+				"port": 123,
+				"network": "udp",
+				"outboundTag": "direct"
+			},
+			{
+				"type": "field",
+				"ip": [
+					"8.8.8.8",
+					"1.1.1.1"
+				],
+				"outboundTag": "proxy"
+			},
+			{
+				"type": "field",
+				"ip": [
+				  "geoip:private"
+				],
+				"outboundTag": "direct"
+			}
+		]
+	}
+}
